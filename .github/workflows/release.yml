@@ -35,7 +35,7 @@ jobs:
 
       # ── 4. Download PocketBase binary for current platform ───────────────────
       - name: Download PocketBase
-        run: node scripts/download-pb.js
+        run: node scripts/download-pocketbase.js
 
       # ── 5. Build ──────────────────────────────────────────────────────────────
       - name: Build UI
@@ -57,3 +57,4 @@ jobs:
         run: npx electron-builder --publish always
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
