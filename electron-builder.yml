@@ -1,0 +1,93 @@
+appId: com.spotix.scanner
+productName: Spotix Scanner
+copyright: Copyright © 2026 Spotix
+
+directories:
+  output: release
+  buildResources: assets
+
+files:
+  - dist/**
+  - package.json
+
+extraResources:
+  - from: nextjs-app/out
+    to: app/nextjs-app/out
+    filter: "**/*"
+
+publish:
+  provider: github
+  owner: spotix
+  repo: spotix-scanner
+  releaseType: release
+
+# ── Windows ───────────────────────────────────────────────────────────────────
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+  icon: assets/icon.ico
+  extraResources:
+    - from: electron/pocketbase-win
+      to: pocketbase
+      filter: "**/*"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: assets/icon.icns
+  category: public.app-category.business
+  darkModeSupport: true
+  extraResources:
+    - from: electron/pocketbase-mac
+      to: pocketbase
+      filter: "**/*"
+
+dmg:
+  title: Spotix Scanner
+  icon: assets/icon.icns
+  iconSize: 80
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 140
+      y: 200
+      type: file
+    - x: 400
+      y: 200
+      type: link
+      path: /Applications
+
+# ── Linux ─────────────────────────────────────────────────────────────────────
+linux:
+  target:
+    - target: AppImage
+    - target: zip
+  category: Office
+  extraResources:
+    - from: electron/pocketbase-linux
+      to: pocketbase
+      filter: "**/*"

@@ -1,0 +1,59 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node.js ─────────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Next.js dependencies
+        run: npm ci --prefix nextjs-app
+
+      # ── 4. Download PocketBase binary for current platform ───────────────────
+      - name: Download PocketBase
+        run: node scripts/download-pb.js
+
+      # ── 5. Build ──────────────────────────────────────────────────────────────
+      - name: Build UI
+        run: npm run build:UI
+
+      - name: Build Electron
+        run: npm run build:electron
+
+      - name: Build Server
+        run: npm run build:server
+
+      # ── 6. Mark as pre-release if tag contains -beta ─────────────────────────
+      - name: Set beta flag
+        if: contains(github.ref, '-beta')
+        run: echo "EP_PRE_RELEASE=true" >> $GITHUB_ENV
+
+      # ── 7. Package and publish to GitHub Releases ────────────────────────────
+      - name: Package & Publish
+        run: npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

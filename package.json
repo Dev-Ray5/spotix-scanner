@@ -1,0 +1,50 @@
+{
+  "name": "spotix-scanner",
+  "version": "1.0.0",
+  "description": "Spotix Professional Event Check-in System",
+  "author": "Spotix Technologies",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "concurrently --kill-others --names \"NEXT,TSC,ELECTRON\" \"npm run dev:UI\" \"npm run dev:tsc\" \"npm run dev:electron\"",
+    "dev:UI": "npm --prefix nextjs-app run dev",
+    "dev:tsc": "tsc -p tsconfig.electron.json --watch",
+    "dev:electron": "wait-on tcp:3001 && cross-env NODE_ENV=development USE_NEXT_DEV=true electron .",
+    "download:pb": "node scripts/download-pocketbase.js",
+    "build:UI": "npm --prefix nextjs-app run build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build": "npm run download:pb && npm run build:UI && npm run build:electron && npm run build:server",
+    "app": "cross-env NODE_ENV=development electron .",
+    "pkg:win": "npm run build && electron-builder --win",
+    "pkg:mac": "npm run build && electron-builder --mac",
+    "pkg:linux": "npm run build && electron-builder --linux",
+    "pkg": "npm run build && electron-builder",
+    "release": "npm run build && electron-builder --publish always",
+    "release:win": "npm run build && electron-builder --win --publish always",
+    "release:mac": "npm run build && electron-builder --mac --publish always",
+    "release:linux": "npm run build && electron-builder --linux --publish always",
+    "version:patch": "npm version patch && git push origin main --follow-tags",
+    "version:minor": "npm version minor && git push origin main --follow-tags",
+    "version:major": "npm version major && git push origin main --follow-tags",
+    "version:beta": "npm version prerelease --preid=beta && git push origin main --follow-tags"
+  },
+  "dependencies": {
+    "@fastify/static": "6.12.0",
+    "@fastify/websocket": "8.3.1",
+    "electron-updater": "^6.3.4",
+    "fastify": "^4.28.1",
+    "pino-pretty": "^13.0.0",
+    "pocketbase": "^0.21.3",
+    "selfsigned": "^2.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/selfsigned": "^2.0.6",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
+    "typescript": "^5.4.5",
+    "wait-on": "^7.2.0"
+  }
+}

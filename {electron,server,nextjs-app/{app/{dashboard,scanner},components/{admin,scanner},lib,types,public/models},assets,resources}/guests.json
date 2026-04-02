@@ -1,0 +1,122 @@
+[
+  {
+    "fullName": "Chukwuemeka Obi",
+    "email": "emeka.obi@gmail.com",
+    "ticketId": "TKT-001",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Adaeze Nwosu",
+    "email": "ada.nwosu@yahoo.com",
+    "ticketId": "TKT-002",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Tunde Fashola",
+    "email": "tunde.fashola@gmail.com",
+    "ticketId": "TKT-003",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Ngozi Eze",
+    "email": "ngozi.eze@outlook.com",
+    "ticketId": "TKT-004",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Babatunde Adeyemi",
+    "email": "baba.adeyemi@gmail.com",
+    "ticketId": "TKT-005",
+    "ticketType": "VVIP"
+  },
+  {
+    "fullName": "Chisom Anozie",
+    "email": "chisom.anozie@gmail.com",
+    "ticketId": "TKT-006",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Kehinde Salami",
+    "email": "kehinde.salami@yahoo.com",
+    "ticketId": "TKT-007",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Amaka Obiora",
+    "email": "amaka.obiora@gmail.com",
+    "ticketId": "TKT-008",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Segun Akinwale",
+    "email": "segun.akinwale@gmail.com",
+    "ticketId": "TKT-009",
+    "ticketType": "VVIP"
+  },
+  {
+    "fullName": "Blessing Okeke",
+    "email": "blessing.okeke@outlook.com",
+    "ticketId": "TKT-010",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Emeka Uzor",
+    "email": "emeka.uzor@gmail.com",
+    "ticketId": "TKT-011",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Folake Adeleke",
+    "email": "folake.adeleke@gmail.com",
+    "ticketId": "TKT-012",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Chidi Nnamdi",
+    "email": "chidi.nnamdi@yahoo.com",
+    "ticketId": "TKT-013",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Yetunde Balogun",
+    "email": "yetunde.balogun@gmail.com",
+    "ticketId": "TKT-014",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Obinna Achike",
+    "email": "obinna.achike@gmail.com",
+    "ticketId": "TKT-015",
+    "ticketType": "VVIP"
+  },
+  {
+    "fullName": "Funmilayo Okonkwo",
+    "email": "funmi.okonkwo@outlook.com",
+    "ticketId": "TKT-016",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Uche Maduka",
+    "email": "uche.maduka@gmail.com",
+    "ticketId": "TKT-017",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Sade Coker",
+    "email": "sade.coker@gmail.com",
+    "ticketId": "TKT-018",
+    "ticketType": "Regular"
+  },
+  {
+    "fullName": "Ifeanyi Okafor",
+    "email": "ifeanyi.okafor@yahoo.com",
+    "ticketId": "TKT-019",
+    "ticketType": "VIP"
+  },
+  {
+    "fullName": "Rachael Duru",
+    "email": "rachael.duru@gmail.com",
+    "ticketId": "TKT-020",
+    "ticketType": "Regular"
+  }
+]
