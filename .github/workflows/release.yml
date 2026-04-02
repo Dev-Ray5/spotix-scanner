@@ -35,7 +35,7 @@ jobs:
 
       # ── 4. Download PocketBase binary for current platform ───────────────────
       - name: Download PocketBase
-        run: node scripts/download-pocketbase.js
+        run: node scripts/download-pb.js
 
       # ── 5. Build ──────────────────────────────────────────────────────────────
       - name: Build UI
