@@ -1,6 +1,6 @@
 {
   "name": "spotix-scanner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Spotix Professional Event Check-in System",
   "author": "Spotix Technologies",
   "main": "dist/electron/main.js",
