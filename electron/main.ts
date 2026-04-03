@@ -1,3 +1,15 @@
+/**
+ * Spotix Scanner — Professional Event Check-in System
+ * Copyright © 2026 Spotix Technologies. All rights reserved.
+ *
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, modification, distribution, or use of this file,
+ * via any medium, is strictly prohibited without the express written
+ * permission of Spotix Technologies.
+ *
+ * For licensing inquiries, contact: legal@spotix.com.ng
+ */
+
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 
 // Must be called before app is ready
@@ -10,7 +22,7 @@ import fs from 'fs';
 import { createServer } from '../server/fastify';
 import { buildAppMenu } from './menu';
 import { checkForUpdates } from './updater';
-import { setupPocketBase, resetSetupFlag } from './pocketbase-setup';
+import { setupPocketBase } from './pocketbase-setup';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -33,7 +45,7 @@ const PB_BINARY = IS_DEV
   ? path.join(__dirname, '../../electron/pocketbase-win', IS_WIN ? 'pocketbase.exe' : 'pocketbase')
   : path.join(process.resourcesPath, 'pocketbase', IS_WIN ? 'pocketbase.exe' : 'pocketbase');
 
-// Ensure static dir exists to prevent Fastify from crashing
+// Ensure static dir exists to prevent server from crashing
 if (!fs.existsSync(NEXT_OUT_DIR)) {
   fs.mkdirSync(NEXT_OUT_DIR, { recursive: true });
   fs.writeFileSync(path.join(NEXT_OUT_DIR, 'index.html'),
@@ -92,7 +104,7 @@ async function startPocketBase(): Promise<void> {
       console.log(`[DB] Killed with code ${code}`);
     });
 
-    // Wait for PocketBase to be ready
+    // Wait for db to be ready
     const checkReady = async (retries: number): Promise<boolean> => {
       for (let i = 0; i < retries; i++) {
         try {

@@ -17,7 +17,7 @@ extraResources:
 
 publish:
   provider: github
-  owner: Dev-Ray5
+  owner: spotix-technologies
   repo: spotix-scanner
   releaseType: release
 

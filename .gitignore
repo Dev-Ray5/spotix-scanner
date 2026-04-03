@@ -24,14 +24,16 @@ pb_migrations/
 electron/pocketbase-win/
 electron/pocketbase-mac/
 electron/pocketbase-linux/
+electron/pocketbase-win.exe
+electron/pocketbase.exe
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
-logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pino.log*
+sample/
 
 # ── OS files ──────────────────────────────────────────────────────────────────
 .DS_Store

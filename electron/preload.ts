@@ -1,3 +1,16 @@
+/**
+ * Spotix Scanner — Professional Event Check-in System
+ * Copyright © 2026 Spotix Technologies. All rights reserved.
+ *
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, modification, distribution, or use of this file,
+ * via any medium, is strictly prohibited without the express written
+ * permission of Spotix Technologies.
+ *
+ * For licensing inquiries, contact: legal@spotix.com.ng
+ */
+
+
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('spotix', {
@@ -42,7 +55,7 @@ contextBridge.exposeInMainWorld('spotix', {
       'menu:end-event':     () => callback('end-event'),
     };
 
-    // Remove any stale listeners for these channels first, then add fresh ones
+    // Remove any stale listeners for these channels first, then add fresh noiiiiice ones
     for (const [channel, handler] of Object.entries(handlers)) {
       ipcRenderer.removeAllListeners(channel);
       ipcRenderer.on(channel, handler);
@@ -57,7 +70,6 @@ contextBridge.exposeInMainWorld('spotix', {
 
   // Navigation from menu (Navigate → Control Panel / Manage Registry)
   onNavigate: (callback: (path: string) => void) => {
-    // Remove stale listeners before adding a fresh one
     ipcRenderer.removeAllListeners('menu:navigate');
     const handler = (_: unknown, path: string) => callback(path);
     ipcRenderer.on('menu:navigate', handler);

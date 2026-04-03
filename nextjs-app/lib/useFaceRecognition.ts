@@ -1,3 +1,18 @@
+/**
+ * Spotix Scanner — Professional Event Check-in System
+ * Copyright © 2026 Spotix Technologies. All rights reserved.
+ *
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, modification, distribution, or use of this file,
+ * via any medium, is strictly prohibited without the express written
+ * permission of Spotix Technologies.
+ *
+ * For licensing inquiries, contact: legal@spotix.com.ng
+ */
+
+
+
+
 'use client';
 import { useState, useRef, useCallback, useEffect } from 'react';
 
@@ -175,7 +190,7 @@ export function useFaceRecognition(): FaceRecognitionHook {
         );
 
         // ── Draw bounding box + corner accents ───────────────────────────────
-        // NOTE: if you are using the new FaceMarker landmark drawing, you can
+        // NOTE: if we decide in future to use the new FaceMarker landmark drawing, we can
         // remove the ctx drawing block below to avoid double-rendering.
         // The bounding box is kept here as a lightweight fallback.
         if (ctx) {

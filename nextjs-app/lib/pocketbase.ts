@@ -1,3 +1,16 @@
+/**
+ * Spotix Scanner — Professional Event Check-in System
+ * Copyright © 2026 Spotix Technologies. All rights reserved.
+ *
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, modification, distribution, or use of this file,
+ * via any medium, is strictly prohibited without the express written
+ * permission of Spotix Technologies.
+ *
+ * For licensing inquiries, contact: legal@spotix.com.ng
+ */
+
+
 // PocketBase client - browser/Next.js only (ESM compatible)
 // For server/electron, use direct fetch calls to PocketBase REST API
 
@@ -9,8 +22,6 @@ export async function getPocketBase() {
   return new PocketBase(POCKETBASE_URL);
 }
 
-import type { Guest } from '../types/guest';
-import type { Log } from '../types/log';
 
 // ─── Direct REST helpers (used in server/electron - no SDK needed) ────────────
 
