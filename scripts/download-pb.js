@@ -4,7 +4,7 @@ const path  = require('path');
 const { execSync } = require('child_process');
 
 // ── Config — update version here when PocketBase releases 
-const PB_VERSION = '0.22.4';
+const PB_VERSION = '0.36.8';
 
 const TARGETS = {
   win32:  { folder: 'electron/pocketbase-win',   zip: `pocketbase_${PB_VERSION}_windows_amd64.zip`  },
