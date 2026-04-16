@@ -10,7 +10,6 @@
  * For licensing inquiries, contact: legal@spotix.com.ng
  */
 
-
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,17 +19,20 @@ export default function ElectronMenuHandler() {
 
   useEffect(() => {
     const spotix = (window as any).spotix;
-    if (!spotix) return; // not running in Electron, skip
+    if (!spotix) return;
 
     const unsubNav = spotix.onNavigate((path: string) => {
       router.push(path);
     });
 
-    const unsubAction = spotix.onMenuAction((action: string) => {
+    const unsubAction = spotix.onMenuAction(async (action: string) => {
       if (action === 'import-guests') {
-        spotix.openGuestFileDialog().then((filePath: string | null) => {
-          if (filePath) spotix.importGuests(filePath);
-        });
+        // Navigate to dashboard first (where GuestImport lives), then trigger
+        router.push('/dashboard/');
+        // Small delay to let the page mount before firing the event
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('spotix:import-guests'));
+        }, 300);
       }
       if (action === 'export-logs') spotix.exportLogs('both');
       if (action === 'import-logs') spotix.importLogs();
@@ -43,5 +45,5 @@ export default function ElectronMenuHandler() {
     };
   }, [router]);
 
-  return null; // renders nothing, just wires up listeners
+  return null;
 }

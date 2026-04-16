@@ -17,7 +17,7 @@ app.commandLine.appendSwitch('ignore-certificate-errors');
 app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
 import path from 'path';
 import os from 'os';
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, execSync } from 'child_process';
 import fs from 'fs';
 import { createServer } from '../server/fastify';
 import { buildAppMenu } from './menu';
@@ -71,6 +71,7 @@ function getLocalIPs(): string[] {
 
 let mainWindow: BrowserWindow | null = null;
 let pbProcess: ChildProcess | null = null;
+let splashWindow: BrowserWindow | null = null;
 let fastifyServer: { start: () => Promise<string>; stop: () => Promise<void> } | null = null;
 
 // ─── PocketBase ───────────────────────────────────────────────────────────────
@@ -176,7 +177,35 @@ async function purgeDatabase(): Promise<void> {
   console.log('[DB] Fresh database ready');
 }
 
-// ─── Window ───────────────────────────────────────────────────────────────────
+// Create a splash screen to show while the database and server are starting up
+
+function createSplash(): void {
+  const version = app.getVersion();
+
+  splashWindow = new BrowserWindow({
+    width: 480,
+    height: 300,
+    frame: false,
+    transparent: false,
+    resizable: false,
+    center: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  const splashPath = IS_DEV
+    ? path.join(__dirname, '../../assets/splash.html')
+    : path.join(process.resourcesPath, 'assets', 'splash.html');
+
+  splashWindow.loadURL(`file://${splashPath}?v=${version}`);
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+// Create Window after DB and server are ready to minimize splash time
 
 function createWindow(): void {
   const { session } = require('electron');
@@ -212,6 +241,7 @@ function createWindow(): void {
   mainWindow.loadURL(dashboardUrl);
 
   mainWindow.once('ready-to-show', () => {
+    splashWindow?.close();
     mainWindow?.show();
   });
 
@@ -351,7 +381,7 @@ function registerIpcHandlers(): void {
       const raw  = fs.readFileSync(filePath, 'utf-8');
       const data = JSON.parse(raw);
       const logs = Array.isArray(data) ? data : (data.logs ?? []);
-      return { success: true, logs, filePath };
+      return { success: true, data, logs, filePath };
     } catch (err) {
       return { success: false, error: String(err) };
     }
@@ -380,10 +410,35 @@ function registerIpcHandlers(): void {
   });
 }
 
-// ─── App Lifecycle ────────────────────────────────────────────────────────────
 
+function freePort(port: number): void {
+  try {
+    if (IS_WIN) {
+      const result = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf-8' });
+      const lines = result.trim().split('\n');
+      const pids = new Set<string>();
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        const pid = parts[parts.length - 1];
+        if (pid && pid !== '0') pids.add(pid);
+      }
+      for (const pid of pids) {
+        try { execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' }); } catch { /* already dead */ }
+      }
+    } else {
+      execSync(`lsof -ti :${port} | xargs kill -9`, { stdio: 'ignore' });
+    }
+    console.log(`[App] Freed port ${port}`);
+  } catch { /* port was already free */ }
+}
+
+// App Lifecycle
 app.whenReady().then(async () => {
   try {
+    freePort(8090);   // PocketBase
+    freePort(3000);   // Fastify HTTPS
+    freePort(3001);   // Fastify HTTP
+    createSplash();
     console.log('[App] Starting Spotix Scanner...');
 
     await startPocketBase();

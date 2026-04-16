@@ -10,7 +10,6 @@
  * For licensing inquiries, contact: legal@spotix.com.ng
  */
 
-
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('spotix', {
@@ -45,8 +44,6 @@ contextBridge.exposeInMainWorld('spotix', {
     ipcRenderer.invoke('network:getScannerUrl'),
 
   // Menu event listeners (menu → React)
-  // Uses named handler refs so we can remove exactly the right listener
-  // on cleanup — avoids listener pile-up on re-renders / StrictMode.
   onMenuAction: (callback: (action: string) => void) => {
     const handlers: Record<string, (...args: unknown[]) => void> = {
       'menu:import-guests': () => callback('import-guests'),
@@ -55,9 +52,7 @@ contextBridge.exposeInMainWorld('spotix', {
       'menu:end-event':     () => callback('end-event'),
     };
 
-    // Remove any stale listeners for these channels first, then add fresh noiiiiice ones
     for (const [channel, handler] of Object.entries(handlers)) {
-      ipcRenderer.removeAllListeners(channel);
       ipcRenderer.on(channel, handler);
     }
 
@@ -68,9 +63,8 @@ contextBridge.exposeInMainWorld('spotix', {
     };
   },
 
-  // Navigation from menu (Navigate → Control Panel / Manage Registry)
+  // Navigation from menu
   onNavigate: (callback: (path: string) => void) => {
-    ipcRenderer.removeAllListeners('menu:navigate');
     const handler = (_: unknown, path: string) => callback(path);
     ipcRenderer.on('menu:navigate', handler);
     return () => { ipcRenderer.removeListener('menu:navigate', handler); };

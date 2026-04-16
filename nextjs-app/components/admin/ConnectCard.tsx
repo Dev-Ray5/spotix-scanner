@@ -31,6 +31,10 @@ const handleCopy = async () => {
   setTimeout(() => setCopied(false), 2000);
 };
 
+    useEffect(() => {
+      loadUrl();
+    }, []);
+
   return (
     <div className="rounded-xl border border-white/[0.06] bg-[#141414] p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">

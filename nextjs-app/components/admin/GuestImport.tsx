@@ -1,6 +1,6 @@
 'use client';
-import { useState, useCallback, useRef } from 'react';
-import { Upload, CheckCircle, AlertCircle, FileJson, X } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Upload, CheckCircle, AlertCircle, FileJson, X, SkipForward } from 'lucide-react';
 
 // HTTP port 3001 — admin window uses HTTP, no SSL issues
 const FASTIFY_URL = 'http://127.0.0.1:3001';
@@ -9,7 +9,7 @@ interface GuestImportProps {
   onImported: () => void;
 }
 
-type ImportState = 'idle' | 'loading' | 'success' | 'error';
+type ImportState = 'idle' | 'loading' | 'success' | 'partial' | 'error';
 
 export default function GuestImport({ onImported }: GuestImportProps) {
   const [state, setState] = useState<ImportState>('idle');
@@ -19,6 +19,12 @@ export default function GuestImport({ onImported }: GuestImportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isElectron = typeof window !== 'undefined' && !!(window as any).spotix;
+
+  const resolveState = (imported: number, skipped: number): ImportState => {
+    if (imported === 0 && skipped > 0) return 'error';
+    if (skipped > 0) return 'partial';
+    return 'success';
+  };
 
   const importGuests = useCallback(async (guests: unknown[]) => {
     setState('loading');
@@ -42,7 +48,7 @@ export default function GuestImport({ onImported }: GuestImportProps) {
       const data = await res.json() as { imported: number; skipped: number };
       console.log(`[GuestImport] Imported: ${data.imported}, Skipped: ${data.skipped}`);
       setResult(data);
-      setState('success');
+      setState(resolveState(data.imported, data.skipped));
       onImported();
     } catch (err) {
       console.error('[GuestImport] Error:', err);
@@ -67,7 +73,7 @@ export default function GuestImport({ onImported }: GuestImportProps) {
         setState('error');
       } else {
         setResult(res);
-        setState('success');
+        setState(resolveState(res.imported, res.skipped));
         onImported();
       }
     } catch (err) {
@@ -107,6 +113,12 @@ export default function GuestImport({ onImported }: GuestImportProps) {
       fileInputRef.current?.click();
     }
   };
+
+  useEffect(() => {
+    const handler = () => handleClick();
+    window.addEventListener('spotix:import-guests', handler);
+    return () => window.removeEventListener('spotix:import-guests', handler);
+  }, [handleClick]);
 
   const handleReset = () => {
     setState('idle');
@@ -153,7 +165,7 @@ export default function GuestImport({ onImported }: GuestImportProps) {
           <h3 className="text-sm font-medium text-white">Guest List</h3>
           <p className="text-xs text-white/30 mt-0.5">Import guests.json to begin</p>
         </div>
-        {state === 'success' && (
+        {(state === 'success' || state === 'partial') && (
           <button onClick={handleReset} className="p-1 text-white/30 hover:text-white/60 transition-colors">
             <X size={14} />
           </button>
@@ -198,7 +210,35 @@ export default function GuestImport({ onImported }: GuestImportProps) {
             <div>
               <p className="text-sm font-medium text-emerald-400">Import successful</p>
               <p className="text-xs text-white/40 mt-0.5">
-                {result.imported} imported · {result.skipped} skipped
+                {result.imported} guest{result.imported !== 1 ? 's' : ''} imported
+              </p>
+            </div>
+          </div>
+          <button onClick={handleClick} className="text-xs text-white/30 hover:text-white/60 transition-colors text-center py-1">
+            Import another file
+          </button>
+        </div>
+      )}
+
+      {state === 'partial' && result && (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3 bg-emerald-400/5 border border-emerald-400/20 rounded-xl p-4">
+            <CheckCircle size={18} className="text-emerald-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-emerald-400">Import successful</p>
+              <p className="text-xs text-white/40 mt-0.5">
+                {result.imported} guest{result.imported !== 1 ? 's' : ''} imported
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 bg-amber-400/5 border border-amber-400/20 rounded-xl p-4">
+            <SkipForward size={18} className="text-amber-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-400">
+                {result.skipped} duplicate{result.skipped !== 1 ? 's' : ''} skipped
+              </p>
+              <p className="text-xs text-white/40 mt-0.5">
+                {result.skipped === 1 ? 'This ticket ID was' : 'These ticket IDs were'} already in the registry
               </p>
             </div>
           </div>
@@ -210,13 +250,25 @@ export default function GuestImport({ onImported }: GuestImportProps) {
 
       {state === 'error' && (
         <div className="flex flex-col gap-3">
-          <div className="flex items-start gap-3 bg-red-400/5 border border-red-400/20 rounded-xl p-4">
-            <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-red-400">Import failed</p>
-              <p className="text-xs text-white/40 mt-0.5 break-all">{error}</p>
+          {result && result.skipped > 0 && result.imported === 0 ? (
+            <div className="flex items-start gap-3 bg-amber-400/5 border border-amber-400/20 rounded-xl p-4">
+              <SkipForward size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-400">All entries already exist</p>
+                <p className="text-xs text-white/40 mt-0.5">
+                  All {result.skipped} ticket{result.skipped !== 1 ? 's' : ''} in this file are already in the registry
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-start gap-3 bg-red-400/5 border border-red-400/20 rounded-xl p-4">
+              <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-400">Import failed</p>
+                <p className="text-xs text-white/40 mt-0.5 break-all">{error}</p>
+              </div>
+            </div>
+          )}
           <button onClick={handleReset} className="text-xs text-brand-400 hover:text-brand-300 transition-colors text-center py-1">
             Try again
           </button>

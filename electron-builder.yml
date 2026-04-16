@@ -13,6 +13,8 @@ files:
 extraResources:
   - from: nextjs-app/out
     to: app/nextjs-app/out
+  - from: assets/
+    to: assets/
     filter: "**/*"
 
 publish:

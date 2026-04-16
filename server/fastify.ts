@@ -10,7 +10,6 @@
  * For licensing inquiries, contact: legal@spotix.com.ng
  */
 
-
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
@@ -263,7 +262,6 @@ function registerRoutes(fastifyApp: FastifyInstance): void {
       return reply.status(400).send({ error: 'fullName, email, ticketId, and ticketType are required' });
     }
 
-    // Check for duplicate ticketId
     const existing = await getGuestByTicketId(ticketId.trim());
     if (existing) {
       return reply.status(409).send({ error: `Ticket ID "${ticketId}" already exists` });
@@ -296,7 +294,6 @@ function registerRoutes(fastifyApp: FastifyInstance): void {
     const { id } = req.params;
     const { fullName, email, ticketType, checkedIn, checkedInAt, checkedInBy, faceEmbedding } = req.body;
 
-    // Build update payload — only include provided fields
     const update: Record<string, unknown> = {};
     if (fullName    !== undefined) update.fullName    = fullName.trim();
     if (email       !== undefined) update.email       = email.trim();
@@ -358,6 +355,31 @@ function registerRoutes(fastifyApp: FastifyInstance): void {
     return reply.send({ success: true });
   });
 
+  // ─── Logs ───────────────────────────────────────────────────────────────────
+
+  // GET logs for a specific scanner (scanner history page)
+  // Returns only logs belonging to the requesting scannerId — no cross-device leakage.
+  fastifyApp.get<{ Querystring: { scannerId: string; limit?: string } }>('/api/logs', async (req, reply) => {
+    const { scannerId, limit } = req.query;
+
+    if (!scannerId?.trim()) {
+      return reply.status(400).send({ error: 'scannerId query parameter is required' });
+    }
+
+    const safe       = scannerId.replace(/'/g, "\\'");
+    const perPage    = Math.min(parseInt(limit ?? '200', 10) || 200, 500);
+    const filterUrl  = `/api/collections/logs/records?filter=${pbFilter(`scannerId='${safe}'`)}&sort=-timestamp&perPage=${perPage}`;
+
+    const res = await pbGet(filterUrl);
+    if (!res.ok) {
+      console.error('[Server] GET /api/logs failed:', res.status, await res.text());
+      return reply.status(500).send({ error: 'Failed to fetch logs' });
+    }
+
+    const data = await res.json() as { items: Log[] };
+    return reply.send(data.items ?? []);
+  });
+
   // ─── Bulk guest import ──────────────────────────────────────────────────────
 
   fastifyApp.post<{ Body: { guests: Guest[] } }>('/api/guests/import', async (req, reply) => {
@@ -374,32 +396,64 @@ function registerRoutes(fastifyApp: FastifyInstance): void {
       return reply.status(500).send({ error: 'PocketBase authentication failed' });
     }
 
+    // Fetch all existing ticketIds in one shot to avoid N queries
+    let existingTicketIds: Set<string>;
+    try {
+      const res = await fetch(
+        `${POCKETBASE_URL}/api/collections/guests/records?perPage=500&fields=ticketId`,
+        { headers: { Authorization: token } }
+      );
+      if (!res.ok) throw new Error(`Failed to fetch existing guests: ${res.status}`);
+      const data = await res.json() as { items: { ticketId: string }[] };
+      existingTicketIds = new Set((data.items ?? []).map(g => g.ticketId));
+      console.log(`[Server] Found ${existingTicketIds.size} existing ticket IDs`);
+    } catch (e) {
+      console.error('[Server] Import aborted — could not load existing guests:', e);
+      return reply.status(500).send({ error: 'Failed to load existing guest list' });
+    }
+
     let imported = 0, skipped = 0;
 
     for (const guest of guests) {
       if (!guest.fullName || !guest.email || !guest.ticketId || !guest.ticketType) {
+        console.log(`[Server] Skipped (missing fields): ${JSON.stringify(guest)}`);
         skipped++; continue;
       }
+
+      if (existingTicketIds.has(guest.ticketId)) {
+        console.log(`[Server] Skipped (duplicate ticketId): ${guest.ticketId}`);
+        skipped++; continue;
+      }
+
       try {
         const res = await fetch(`${POCKETBASE_URL}/api/collections/guests/records`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', Authorization: token },
           body: JSON.stringify({
-            fullName:     guest.fullName,
-            email:        guest.email,
-            ticketId:     guest.ticketId,
-            ticketType:   guest.ticketType,
-            checkedIn:    false,
-            checkedInAt:  null,
-            checkedInBy:  null,
+            fullName:      guest.fullName,
+            email:         guest.email,
+            ticketId:      guest.ticketId,
+            ticketType:    guest.ticketType,
+            checkedIn:     false,
+            checkedInAt:   null,
+            checkedInBy:   null,
             faceEmbedding: Array.isArray(guest.faceEmbedding) && guest.faceEmbedding.length > 0
               ? guest.faceEmbedding
               : null,
           }),
         });
-        if (res.ok) { imported++; }
-        else { skipped++; }
-      } catch { skipped++; }
+
+        if (res.ok) {
+          imported++;
+          existingTicketIds.add(guest.ticketId); // guard against dupes within same batch
+        } else {
+          console.error(`[Server] Failed to import ${guest.ticketId}: ${res.status} ${await res.text()}`);
+          skipped++;
+        }
+      } catch (e) {
+        console.error(`[Server] Exception importing ${guest.ticketId}:`, e);
+        skipped++;
+      }
     }
 
     console.log(`[Server] Import done: ${imported} imported, ${skipped} skipped`);
@@ -542,7 +596,7 @@ export async function createServer(options: {
       connectedScanners.delete(scannerId);
       broadcast({ type: 'scanner_left', payload: { scannerId } });
     });
-  };  
+  };
 
   fastify.get('/ws', { websocket: true }, wsHandler);
   httpFastify.get('/ws', { websocket: true }, wsHandler);
